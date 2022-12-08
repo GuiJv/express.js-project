@@ -1,33 +1,44 @@
 import fs from 'fs'
-class FilesRepository{
-    public static list(){
+import { FilesRepositoryInterface } from './interface.repository.js'
+import { nanoid } from 'nanoid'
+import {  isEmpty  } from '../utils/utils.js'
+class FilesRepository implements FilesRepositoryInterface{
+    public list(){
         return JSON.parse(fs.readFileSync("files.json", "utf-8"))
     }
 
-    public static write(request: {id: number, name: string, link: string}){
-        const files = FilesRepository.list()
+    public write(request: {id: string, name: string, link: string}){
+        const file_added = request
+        file_added.id = nanoid()
+        const files = this.list()
+
         files.push(request)
         fs.writeFileSync("files.json", JSON.stringify(files))
+        return 
     }
 
-    public static update(id: number, name: string){
-        const files = FilesRepository.list()
+    public update(id: string, name?: string, link?: string): boolean{
+        const files = this.list()
         const ids = files.map((item) => {
           return item.id
         })
-        const index = ids.indexOf(Number(id))
+        const index = ids.indexOf((id))
         if(index == -1){
             return false
         }
         else{
-          files[index].name = name
+            if(!(isEmpty(link))){
+                files[index].link = link}
+            if(!(isEmpty(name))){
+                files[index].name = name
+            }
           fs.writeFileSync("files.json", JSON.stringify(files))
           return true
         }
     }
 
-    public static delete(id: number){
-        const files = FilesRepository.list()
+    public delete(id: string){
+        const files = this.list()
         const ids = files.map((item) => {
             return item.id
           })
@@ -40,9 +51,6 @@ class FilesRepository{
             return true
 
         }
-
-
-
     }
 }
 

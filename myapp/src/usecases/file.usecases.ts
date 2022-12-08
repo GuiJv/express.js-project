@@ -1,21 +1,39 @@
 import fs, { readFile } from 'fs'
-import FilesRepository from '../repositorys/files.respository.js'
+import { FilesRepositoryInterface } from '../repositorys/interface.repository.js'
+import {  isEmpty  } from '../utils/utils.js'
+
 class FilesUseCase {
-    public static listFiles(): {id: number, name: string, link: string}[] {
-        const files = FilesRepository.list()
+    private filesRepository:  FilesRepositoryInterface
+    constructor (fileRepository: FilesRepositoryInterface) {
+        this.filesRepository = fileRepository
+    }
+    public listFiles(): {id: string, name: string, link: string}[] {
+        const files = this.filesRepository.list()
         return files
     }
 
-    public static addFile(request: {id: number, name: string, link: string}){
-        FilesRepository.write(request)
+    public addFile(request: {id: string, name: string, link: string}){
+        if (isEmpty(request.name)) {
+            throw Error("Nome Inválido")
+        }
+        if (isEmpty(request.link)){
+            throw Error("Link Inválido")
+        }
+        else{this.filesRepository.write(request)}
     }
 
-    public static updateFile(id: number, name: string): boolean{
-        return FilesRepository.update(id, name)
+    public updateFile(id: string, name: string, link: string): boolean{
+        if((isEmpty(name)) && (isEmpty(link))){
+            throw Error("Nome inválido")
+        }
+        else{
+        return this.filesRepository.update(id, name, link)
+        }
     }
 
-    public static deleteFile(id_del: number){
-        return FilesRepository.delete(id_del)
+    public deleteFile(id_del: string): boolean{
+
+        return this.filesRepository.delete(id_del)
     }
 }
 
