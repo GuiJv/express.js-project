@@ -1,45 +1,40 @@
 import { Router } from 'express'
-import FilesRepository from '../repositorys/files.respository.js'
 import FileUseCase from '../usecases/file.usecases.js'
+import { FilesMongoRepository } from '../repositorys/implementations/fileMongo.repository.js'
 
 const router = Router()
 
-router.get('/ping', (req, res) => {
-  res.status(200)
-  res.json('pong')
-})
-
-router.get('/file', (req, res) => {
+async function list(req, res) {
   try {
-    const repository = new FilesRepository()
+    const repository = new FilesMongoRepository()
     const fileUseCase = new FileUseCase(repository)
-    const files = fileUseCase.listFiles()
+    const files = await fileUseCase.listFiles()
     res.status(200)
     res.json(files)
   } catch (e) {
     res.status(500)
     res.json('Erro ao buscar lista')
   }
-})
+}
 
-router.post('/file', (req, res) => {
+async function write(req, res) {
   try {
-    const repository = new FilesRepository()
+    const repository = new FilesMongoRepository()
     const fileUseCase = new FileUseCase(repository)
-    fileUseCase.addFile(req.body)
+    await fileUseCase.addFile(req.body)
     res.status(200)
     res.json('ok')
   } catch (e) {
     res.status(400)
     res.json(e.message)
   }
-})
+}
 
-router.delete('/file/:iddel', (req, res) => {
+async function deleted(req, res) {
   try {
-    const repository = new FilesRepository()
+    const repository = new FilesMongoRepository()
     const fileUseCase = new FileUseCase(repository)
-    if (fileUseCase.deleteFile(req.params.iddel)) {
+    if (!(await fileUseCase.deleteFile(req.params.iddel))) {
       res.status(200)
       res.json('Deletado')
     } else {
@@ -50,13 +45,15 @@ router.delete('/file/:iddel', (req, res) => {
     res.status(500)
     res.json(e.message)
   }
-})
+}
 
-router.put('/file/:id', (req, res) => {
+async function update(req, res) {
   try {
-    const repository = new FilesRepository()
+    const repository = new FilesMongoRepository()
     const fileUseCase = new FileUseCase(repository)
-    if (fileUseCase.updateFile(req.params.id, req.body.name, req.body.link)) {
+    if (
+      await fileUseCase.updateFile(req.params.id, req.body.name, req.body.link)
+    ) {
       res.status(200)
       res.json('alterado')
     } else {
@@ -67,11 +64,14 @@ router.put('/file/:id', (req, res) => {
     res.status(500)
     res.json(e.message)
   }
-})
+}
 
-router.all('*', (req, res) => {
-  res.status(404)
-  res.json('Pagina não encontrada')
-})
+router.get('/file', list)
+
+router.post('/file', write)
+
+router.delete('/file/:iddel', deleted)
+
+router.put('/file/:id', update)
 
 export default router

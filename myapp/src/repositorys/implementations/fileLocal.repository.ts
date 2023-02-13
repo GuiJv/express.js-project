@@ -1,24 +1,31 @@
 import fs from 'fs'
-import { FilesRepositoryInterface } from './interface.repository.js'
-import { nanoid } from 'nanoid'
-import { isEmpty } from '../utils/utils.js'
-class FilesRepository implements FilesRepositoryInterface {
-  public list() {
+import { FilesRepositoryInterface } from '../interface.repository.js'
+
+import { isEmpty } from '../../utils/utils.js'
+class FilesLocalRepository implements FilesRepositoryInterface {
+  public list(): Promise<{ id: string; name: string; link: string }[]> {
     return JSON.parse(fs.readFileSync('files.json', 'utf-8'))
   }
 
-  public write(request: { id: string; name: string; link: string }) {
+  public async write(request: {
+    id: string
+    name: string
+    link: string
+  }): Promise<void> {
     const file_added = request
-    file_added.id = nanoid()
-    const files = this.list()
+    const files = await this.list()
 
     files.push(request)
     fs.writeFileSync('files.json', JSON.stringify(files))
     return
   }
 
-  public update(id: string, name?: string, link?: string): boolean {
-    const files = this.list()
+  public async update(
+    id: string,
+    name?: string,
+    link?: string
+  ): Promise<boolean> {
+    const files = await this.list()
     const ids = files.map((item) => {
       return item.id
     })
@@ -37,8 +44,8 @@ class FilesRepository implements FilesRepositoryInterface {
     }
   }
 
-  public delete(id: string) {
-    const files = this.list()
+  public async delete(id: string): Promise<boolean> {
+    const files = await this.list()
     const ids = files.map((item) => {
       return item.id
     })
@@ -53,4 +60,4 @@ class FilesRepository implements FilesRepositoryInterface {
   }
 }
 
-export default FilesRepository
+export default FilesLocalRepository

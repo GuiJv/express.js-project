@@ -1,28 +1,36 @@
 import { FilesRepositoryInterface } from '../repositorys/interface.repository.js'
 import { isEmpty } from '../utils/utils.js'
-
+import { nanoid } from 'nanoid'
 class FilesUseCase {
   private filesRepository: FilesRepositoryInterface
   constructor(fileRepository: FilesRepositoryInterface) {
     this.filesRepository = fileRepository
   }
-  public listFiles(): { id: string; name: string; link: string }[] {
-    const files = this.filesRepository.list()
+  public async listFiles(): Promise<
+    { id: string; name: string; link: string }[]
+  > {
+    const files = await this.filesRepository.list()
+    console.log(files)
     return files
   }
 
-  public addFile(request: { id: string; name: string; link: string }) {
+  public async addFile(request: { name: string; link: string }): Promise<void> {
     if (isEmpty(request.name)) {
       throw Error('Nome Inválido')
     }
     if (isEmpty(request.link)) {
       throw Error('Link Inválido')
     } else {
-      this.filesRepository.write(request)
+      const id = nanoid()
+      this.filesRepository.write({ ...request, id })
     }
   }
 
-  public updateFile(id: string, name: string, link: string): boolean {
+  public async updateFile(
+    id: string,
+    name: string,
+    link: string
+  ): Promise<boolean> {
     if (isEmpty(name) && isEmpty(link)) {
       throw Error('Nome inválido')
     } else {
@@ -30,7 +38,7 @@ class FilesUseCase {
     }
   }
 
-  public deleteFile(id_del: string): boolean {
+  public async deleteFile(id_del: string): Promise<boolean> {
     return this.filesRepository.delete(id_del)
   }
 }
